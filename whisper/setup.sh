@@ -32,9 +32,9 @@ if ! command -v nvidia-ctk >/dev/null; then
   problem "nvidia-container-toolkit isn't installed." \
     "See https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html"
 fi
-if [ ! -f /etc/cdi/nvidia.yaml ]; then
-  problem "/etc/cdi/nvidia.yaml (the CDI spec that gives containers the GPU) is missing." \
-    "sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml"
+if [ ! -f /etc/cdi/nvidia.yaml ] && [ ! -f /var/run/cdi/nvidia.yaml ]; then
+  problem "There's no CDI spec (the file that gives containers the GPU)." \
+    "sudo systemctl enable --now nvidia-cdi-refresh.service, or on toolkit < 1.18: sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml"
 fi
 if ! command -v curl >/dev/null; then
   problem "curl isn't installed (used to download the model and check that the server is up)." "Install it with your package manager."
@@ -68,6 +68,20 @@ fi
 # Pull now so the first connection doesn't wait for a multi-GB download.
 podman pull "$IMAGE"
 
+if ! podman run --rm --device nvidia.com/gpu=all "$IMAGE" "nvidia-smi -L"; then
+  cat >&2 <<'MSG'
+✗ A container couldn't use the GPU.
+  If Podman said "unresolvable CDI devices": Podman before 5.0 can't read CDI specs newer than 0.6.0,
+  and nvidia-container-toolkit 1.18+ writes 0.7.0 for its additionalGids field. CUDA doesn't need it:
+    echo NVIDIA_CTK_CDI_GENERATE_FEATURE_FLAGS=no-additional-gids-for-device-nodes \
+      | sudo tee -a /etc/nvidia-container-toolkit/nvidia-cdi-refresh.env
+    sudo rm -f /etc/cdi/nvidia.yaml   # an old hand-made spec would clash with the generated one
+    sudo systemctl restart nvidia-cdi-refresh.service
+  Otherwise, check that the NVIDIA driver is 580 or newer (the CUDA 13 image needs it).
+MSG
+  exit 1
+fi
+
 # --- Units ---
 fill() {
   sed -e "s|@IMAGE@|$IMAGE|g" -e "s|@MODEL@|$MODEL|g" -e "s|@LANGUAGE@|$LANGUAGE|g" \
@@ -86,6 +100,8 @@ fi
 systemctl --user enable whisper-proxy.socket
 # Restart in case LISTEN_IP changed. Also stops a running server so a new model or image is used.
 systemctl --user stop whisper-proxy.service whisper.service 2>/dev/null || true
+# Clears the "failed" state left by earlier failed starts.
+systemctl --user reset-failed whisper-proxy.socket whisper-proxy.service whisper.service 2>/dev/null || true
 systemctl --user restart whisper-proxy.socket
 # Lets the socket listen at boot without anyone logging in.
 loginctl enable-linger "$USER"

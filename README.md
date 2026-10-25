@@ -31,9 +31,11 @@ The first connection starts whisper-server, and it stops after 10 idle minutes t
 **GPU host.** Needs NVIDIA driver 580+, Podman 4.4+, and nvidia-container-toolkit. `setup.sh` checks for these, downloads the model, installs the systemd units, and prints the firewall rule to add.
 
 ```sh
-sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml   # rerun after every driver update
+sudo systemctl enable --now nvidia-cdi-refresh.service   # keeps the GPU's CDI spec current across driver updates
 cd whisper && cp config.env.example config.env && ./setup.sh
 ```
+
+On Podman before 5.0 (e.g. Ubuntu 24.04), `setup.sh` will tell you to add a feature flag so the toolkit writes a CDI spec that Podman can read.
 
 **Bot.** Needs Node.js 22.18+. `setup.sh` installs it as a systemd user service.
 
