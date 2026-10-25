@@ -17,7 +17,7 @@ import { drained, warmUp } from './whisper.ts';
 
 for (const name of ['DISCORD_TOKEN', 'WHISPER_URL', 'SESSIONS_DIR']) {
   if (!process.env[name]) {
-    console.error(`${name} is not set. Put it in .env (see .env.example).`);
+    console.error(`${name} is not set. ${name === 'DISCORD_TOKEN' ? 'Run ./set-token.sh.' : 'Put it in .env (see .env.example).'}`);
     process.exit(1);
   }
 }

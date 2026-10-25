@@ -10,7 +10,7 @@ if ! "$node" -e 'const [a, b] = process.versions.node.split(".").map(Number); pr
   exit 1
 fi
 if [ ! -f .env ]; then
-  echo "Create .env first: cp .env.example .env, then fill it in." >&2
+  echo "Create .env first: cp .env.example .env, fill it in, then run ./set-token.sh." >&2
   exit 1
 fi
 chmod 600 .env

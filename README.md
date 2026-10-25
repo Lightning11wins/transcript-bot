@@ -40,7 +40,8 @@ On Podman before 5.0 (e.g. Ubuntu 24.04), `setup.sh` will tell you to add a feat
 **Bot.** Needs Node.js 22.18+. `setup.sh` installs it as a systemd user service.
 
 ```sh
-cd bot && cp .env.example .env && chmod 600 .env   # fill in .env
+cd bot && cp .env.example .env   # fill in WHISPER_URL and SESSIONS_DIR
+./set-token.sh                    # asks for the bot token; rerun it whenever you reset the token
 ./setup.sh
 ```
 
