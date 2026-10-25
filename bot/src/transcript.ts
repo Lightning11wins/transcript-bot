@@ -22,8 +22,9 @@ function latestNumber(): number {
 function createSession(n: number): string {
   const file = sessionFile(n);
   const previous = n > 1 ? `[[Session ${n - 1}|Previous Session]]` : 'Previous Session';
+  // The next session's link won't work until that file exists, which it will eventually.
   // "wx" refuses to overwrite a file that appeared in the meantime.
-  writeFileSync(file, `${previous} - Next Session\n\n${HEADING}\n`, { flag: 'wx' });
+  writeFileSync(file, `${previous} - [[Session ${n + 1}|Next Session]]\n\n${HEADING}\n`, { flag: 'wx' });
   return file;
 }
 
