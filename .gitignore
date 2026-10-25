@@ -1,0 +1,20 @@
+# Secrets and local config
+.env
+*.env
+!.env.example
+!*.env.example
+
+# Dependencies and local data
+node_modules/
+transcripts/
+*.wav
+*.opus
+*.bin
+*.log
+
+# Editor, OS, and agent files
+.claude/
+.idea/
+.vscode/
+.mcp.json
+.DS_Store

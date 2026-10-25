@@ -1,0 +1,8 @@
+[Unit]
+Description=Forward connections from the VM to whisper-server
+Requires=whisper.service
+After=whisper.service
+
+[Service]
+# Exits after 10 idle minutes, which also stops whisper.service and frees the GPU.
+ExecStart=@PROXYD@ --exit-idle-time=10min 127.0.0.1:8081

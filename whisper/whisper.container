@@ -1,0 +1,23 @@
+# Quadlet unit: generates whisper.service. setup.sh fills in the @...@ values
+# and installs it to ~/.config/containers/systemd/.
+[Unit]
+Description=whisper.cpp server (CUDA)
+# Started by whisper-proxy.service and stopped once that exits.
+StopWhenUnneeded=yes
+
+[Container]
+Image=@IMAGE@
+AddDevice=nvidia.com/gpu=all
+Volume=%h/whisper-models:/models:ro
+PublishPort=127.0.0.1:8081:8080
+# The image's entrypoint is `bash -c`, so the whole command is one argument.
+Exec="whisper-server --model /models/@MODEL@ --language @LANGUAGE@ --host 0.0.0.0 --port 8080"
+DropCapability=ALL
+NoNewPrivileges=true
+
+[Service]
+# whisper-server loads the model before it listens. Waiting for that here keeps
+# connections queued on the socket instead of being refused while it loads.
+ExecStartPost=/bin/sh -c 'until curl -fs http://127.0.0.1:8081/health >/dev/null; do sleep 1; done'
+# Room to pull the image (several GB) if it isn't already pulled.
+TimeoutStartSec=900

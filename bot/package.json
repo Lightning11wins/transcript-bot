@@ -1,0 +1,26 @@
+{
+  "name": "discord-call-transcriber",
+  "version": "1.0.0",
+  "description": "Self-hosted Discord bot that transcribes voice calls with a local whisper.cpp server",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node --env-file=.env src/index.ts",
+    "check": "tsc -p .",
+    "smoke-test": "node scripts/smoke-test.ts",
+    "logs": "journalctl --user -u transcript-bot -f"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "@discordjs/voice": "^0.19.2",
+    "discord.js": "^14.27.0",
+    "opusscript": "^0.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2"
+  }
+}

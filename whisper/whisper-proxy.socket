@@ -1,0 +1,11 @@
+# Listens for the VM and starts whisper-proxy.service (and so whisper.service) on the first connection.
+[Unit]
+Description=whisper-server socket for the VM
+
+[Socket]
+ListenStream=@LISTEN_IP@:8080
+# Allows binding before the libvirt bridge exists at boot.
+FreeBind=yes
+
+[Install]
+WantedBy=sockets.target
