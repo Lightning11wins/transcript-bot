@@ -122,6 +122,8 @@ async function handle(interaction: ChatInputCommandInteraction<'cached'>) {
       }
 
       await interaction.deferReply();
+      // Before joining, so a problem with the notes folder doesn't leave a connection behind.
+      const transcript = new Transcript(currentSession());
       const connection = joinVoiceChannel({
         channelId: channel.id,
         guildId: guild.id,
@@ -138,7 +140,6 @@ async function handle(interaction: ChatInputCommandInteraction<'cached'>) {
         return interaction.editReply("❌ Couldn't connect to the voice channel. Try again?");
       }
 
-      const transcript = new Transcript(currentSession());
       calls.set(guild.id, { connection, recorder: new Recorder(connection, guild, transcript) });
       connection.on(VoiceConnectionStatus.Destroyed, () => endCall(guild.id));
       // From the discord.js voice guide: a disconnect that doesn't start reconnecting
