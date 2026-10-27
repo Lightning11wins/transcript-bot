@@ -25,6 +25,8 @@ const QUIET_RMS = 300;
 const GAP_MS = 100;
 /** Silence put between merged clips. */
 const MERGE_GAP_MS = 300;
+/** Lines kept as whisper context; more than fit in its prompt. */
+const CONTEXT_LINES = 50;
 
 const samples = (ms: number) => Math.round((ms * SAMPLE_RATE) / 1000);
 const millis = (n: number) => (n * 1000) / SAMPLE_RATE;
@@ -44,8 +46,8 @@ interface Clip {
 
 export class Recorder {
   private clips = new Map<string, Clip>();
-  /** Each speaker's last line, passed to whisper as context. */
-  private lastLine = new Map<string, string>();
+  /** The call's last few lines from everyone, passed to whisper as context. */
+  private recentLines: string[] = [];
   private ignored = new Set<string>();
   private stopped = false;
   private connection: VoiceConnection;
@@ -149,10 +151,10 @@ export class Recorder {
 
     transcribe({
       pcm: Buffer.concat(clip.chunks),
-      prompt: () => this.lastLine.get(clip.userId) ?? '',
+      context: () => this.recentLines,
       done: (raw) => {
         const text = raw === null ? null : cleanText(raw);
-        if (text) this.lastLine.set(clip.userId, text);
+        if (text && this.recentLines.push(text) > CONTEXT_LINES) this.recentLines.shift();
         this.transcript.finish(clip.entry, text);
       },
     });
