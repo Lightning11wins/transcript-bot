@@ -12,7 +12,7 @@ import {
 } from 'discord.js';
 import { existsSync } from 'node:fs';
 import { Recorder } from './recorder.ts';
-import { currentSession, newSession, sessionName, Transcript } from './transcript.ts';
+import { currentSession, newSession, readGlossary, sessionName, Transcript } from './transcript.ts';
 import { drained, warmUp } from './whisper.ts';
 
 for (const name of ['DISCORD_TOKEN', 'WHISPER_URL', 'SESSIONS_DIR']) {
@@ -124,6 +124,7 @@ async function handle(interaction: ChatInputCommandInteraction<'cached'>) {
       await interaction.deferReply();
       // Before joining, so a problem with the notes folder doesn't leave a connection behind.
       const transcript = new Transcript(currentSession());
+      const glossary = readGlossary();
       const connection = joinVoiceChannel({
         channelId: channel.id,
         guildId: guild.id,
@@ -140,7 +141,7 @@ async function handle(interaction: ChatInputCommandInteraction<'cached'>) {
         return interaction.editReply("❌ Couldn't connect to the voice channel. Try again?");
       }
 
-      calls.set(guild.id, { connection, recorder: new Recorder(connection, guild, transcript) });
+      calls.set(guild.id, { connection, recorder: new Recorder(connection, guild, transcript, glossary) });
       connection.on(VoiceConnectionStatus.Destroyed, () => endCall(guild.id));
       // From the discord.js voice guide: a disconnect that doesn't start reconnecting
       // within 5s means we were kicked or the channel was deleted.

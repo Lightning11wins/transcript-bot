@@ -1,6 +1,7 @@
 // Session notes are "Session N.md" files in SESSIONS_DIR, linked to each other by a header line:
 //   [[Session 3|Previous Session]] - [[Session 5|Next Session]]
 // Transcript lines go under a "# Transcript" heading in the newest one.
+// Glossary.md there lists names for whisper to spell right, one "- Name" per line.
 
 import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -51,6 +52,19 @@ export function newSession(): string {
     if (linked !== text) writeFileSync(previous, linked);
   }
   return file;
+}
+
+/** Glossary.md's list items as "A, B, C.", or "" if there's no glossary. */
+export function readGlossary(): string {
+  let text: string;
+  try {
+    text = readFileSync(join(dir, 'Glossary.md'), 'utf8');
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return '';
+    throw err;
+  }
+  const terms = [...text.matchAll(/^\s*[-*]\s+(.+?)\s*$/gm)].map((m) => m[1]);
+  return terms.length ? `${terms.join(', ')}.` : '';
 }
 
 export const sessionName = (file: string) => file.slice(file.lastIndexOf('/') + 1, -'.md'.length);

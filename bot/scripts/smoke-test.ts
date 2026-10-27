@@ -38,6 +38,7 @@ if (!(await warmUp())) {
 const started = Date.now();
 transcribe({
   pcm: Buffer.concat(decoded),
+  glossary: '',
   context: () => [],
   done: (text) => {
     console.log(`Transcribed in ${((Date.now() - started) / 1000).toFixed(1)}s: ${JSON.stringify(text)}`);

@@ -53,11 +53,13 @@ export class Recorder {
   private connection: VoiceConnection;
   private guild: Guild;
   readonly transcript: Transcript;
+  private glossary: string;
 
-  constructor(connection: VoiceConnection, guild: Guild, transcript: Transcript) {
+  constructor(connection: VoiceConnection, guild: Guild, transcript: Transcript, glossary: string) {
     this.connection = connection;
     this.guild = guild;
     this.transcript = transcript;
+    this.glossary = glossary;
     connection.receiver.speaking.on('start', this.onSpeaking);
   }
 
@@ -151,6 +153,7 @@ export class Recorder {
 
     transcribe({
       pcm: Buffer.concat(clip.chunks),
+      glossary: this.glossary,
       context: () => this.recentLines,
       done: (raw) => {
         const text = raw === null ? null : cleanText(raw);

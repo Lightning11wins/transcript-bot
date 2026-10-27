@@ -6,12 +6,16 @@ const REQUEST_TIMEOUT_MS = 10 * 60_000;
 const MAX_BACKOFF_MS = 30_000;
 /** whisper.cpp keeps at most 224 tokens of prompt (n_text_ctx / 2) and drops the start; 800 chars of English is about 200. */
 const MAX_PROMPT_CHARS = 800;
+/** Made-up names take more tokens per char than conversation, so the glossary uses up more of the budget. */
+const GLOSSARY_WEIGHT = 1.6;
 
 const baseUrl = (process.env.WHISPER_URL ?? '').replace(/\/+$/, '');
 
 export interface Job {
   /** 16 kHz mono 16-bit PCM. */
   pcm: Buffer;
+  /** Names to spell right, put before the context. */
+  glossary: string;
   /** Recent lines of the call, oldest first. Called just before sending, so it can see the text of earlier jobs. */
   context: () => string[];
   /** Gets the text, or null if whisper-server rejected the clip. */
@@ -50,7 +54,7 @@ async function work() {
 async function sendWithRetry(job: Job): Promise<string | null> {
   for (let attempt = 0; ; attempt++) {
     try {
-      return await inference(job.pcm, buildPrompt(job.context()));
+      return await inference(job.pcm, buildPrompt(job.glossary, job.context()));
     } catch (err) {
       if (!(err instanceof Unreachable)) {
         console.error('[whisper] dropping a clip:', (err as Error).message);
@@ -63,20 +67,21 @@ async function sendWithRetry(job: Job): Promise<string | null> {
   }
 }
 
-/** The newest lines that fit in MAX_PROMPT_CHARS, dropping older ones whole. */
-function buildPrompt(lines: string[]): string {
+/** The glossary, then the newest lines that fit in the rest of MAX_PROMPT_CHARS, dropping older ones whole. */
+function buildPrompt(glossary: string, lines: string[]): string {
+  const budget = MAX_PROMPT_CHARS - Math.ceil(glossary.length * GLOSSARY_WEIGHT);
   const kept: string[] = [];
   let length = 0;
   for (const line of lines.toReversed()) {
-    if (length + line.length + 1 > MAX_PROMPT_CHARS) {
+    if (length + line.length + 1 > budget) {
       // A single line too long to fit: keep its end, starting at a word.
-      if (!kept.length) kept.push(line.slice(-MAX_PROMPT_CHARS).replace(/^\S*\s/, ''));
+      if (!kept.length && budget > 0) kept.push(line.slice(-budget).replace(/^\S*\s/, ''));
       break;
     }
     kept.unshift(line);
     length += line.length + 1;
   }
-  return kept.join(' ');
+  return [glossary, ...kept].filter(Boolean).join(' ');
 }
 
 async function inference(pcm: Buffer, prompt: string): Promise<string> {

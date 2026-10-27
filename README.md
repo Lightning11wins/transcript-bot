@@ -16,6 +16,8 @@ Transcripts go under a `# Transcript` heading in the newest `Session N.md` in `S
 [19:32:05] **Alice:** I check the door for traps.
 ```
 
+To help Whisper spell made-up names, list them as `- Name` lines in `Glossary.md` in the same folder. It's read on `/join`. Keep it to names Whisper gets wrong, since every name takes room from the recent conversation it also uses as context.
+
 ## How it works
 
 ```
