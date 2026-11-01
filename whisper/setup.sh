@@ -112,6 +112,8 @@ Done. whisper-server starts on the first connection to $LISTEN_IP:8080.
 Test it from this machine (the first request waits for the model to load):
   curl http://$LISTEN_IP:8080/health
 
-The VM needs one firewall rule, which you'll need to add yourself. In your nftables input chain:
+The VM needs a firewall rule, which you'll need to add yourself. In your nftables input chain:
   ip saddr ${VM_IP:-<VM_IP>} ip daddr $LISTEN_IP tcp dport 8080 accept
+Every firewall on the input hook must allow it, so if you also run ufw:
+  sudo ufw allow from ${VM_IP:-<VM_IP>} to $LISTEN_IP port 8080 proto tcp
 MSG
