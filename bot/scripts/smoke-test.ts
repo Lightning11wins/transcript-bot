@@ -1,5 +1,5 @@
 // Checks the Opus decoding and whisper-server without Discord:
-//   npm run smoke-test -- speech.wav
+//   pnpm smoke-test speech.wav
 // The WAV must be 16 kHz mono 16-bit, like whisper.cpp's samples/jfk.wav.
 // It's encoded to Opus and decoded again the way the bot does, then transcribed.
 
@@ -9,7 +9,7 @@ import { SAMPLE_RATE, transcribe, warmUp } from '../src/whisper.ts';
 
 const file = process.argv[2];
 if (!file || !process.env.WHISPER_URL) {
-  console.error('Usage: WHISPER_URL=http://host:8080 npm run smoke-test -- speech.wav');
+  console.error('Usage: WHISPER_URL=http://host:8080 pnpm smoke-test speech.wav');
   process.exit(1);
 }
 

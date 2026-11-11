@@ -15,7 +15,7 @@ if [ ! -f .env ]; then
 fi
 chmod 600 .env
 
-npm ci
+pnpm install --frozen-lockfile
 
 unit=~/.config/systemd/user/transcript-bot.service
 mkdir -p "$(dirname "$unit")"

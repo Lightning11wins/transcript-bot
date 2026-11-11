@@ -47,7 +47,7 @@ cd bot && cp .env.example .env   # fill in WHISPER_URL and SESSIONS_DIR
 ./setup.sh
 ```
 
-To test without a GPU, point `WHISPER_URL` at a CPU whisper-server and run `npm run smoke-test -- some.wav`.
+To test without a GPU, point `WHISPER_URL` at a CPU whisper-server and run `pnpm smoke-test some.wav`.
 
 ## License
 
